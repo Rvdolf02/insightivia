@@ -352,10 +352,7 @@ export async function getSpendsenseResult() {
  try {
       const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
-
-   
-  
-
+     
     // fetch user & accounts
    const user = await db.user.findUnique({
       where: { clerkUserId: userId }, // match Clerk ID
@@ -392,16 +389,9 @@ export async function getSpendsenseResult() {
     const req = await request();
     const decision = await ajSpendsense.protect(req, { userId, requested: 1 });
 
-    if (decision.isDenied()) {
-      if (decision.reason?.isRateLimit && decision.reason.isRateLimit()) {
-        throw new Error("You can run SpendSense once per 7 days. Try again later.");
-      }
-      throw new Error("Request blocked by rate limiter.");
-    }
-
-
-    
-
+   if (decision.isDenied()) {
+      return { status: "RATE_LIMITED" };
+   }
 
     // Build stats: totals and category breakdown
     const stats = transactions.reduce(
